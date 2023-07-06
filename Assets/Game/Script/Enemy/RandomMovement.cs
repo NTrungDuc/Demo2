@@ -124,7 +124,7 @@ public class RandomMovement : MonoBehaviour
         Transform nearestTarget = null;
         Vector3 currentPosition = transform.position;
 
-        foreach (GameObject target in listTargetEnemy)
+        foreach (GameObject target in listTargetEnemy.ToArray())
         {
             float distance = Vector3.Distance(target.transform.position, currentPosition);
             if (distance < chaseRadius)

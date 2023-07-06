@@ -61,6 +61,7 @@
     <Compile Include="Assets\Game\Script\Enemy\RandomMovement.cs" />
     <Compile Include="Assets\Game\Script\Player\Movement.cs" />
     <Compile Include="Assets\Game\Script\Player\CameraFollow.cs" />
+    <Compile Include="Assets\Game\Script\UI\SC_FPSCounter.cs" />
     <Compile Include="Assets\Tank &amp; Healer Studio\Ultimate Joystick\_Examples\Spaceship Example\Scripts\AsteroidController.cs" />
     <Compile Include="Assets\Game\Script\Sword.cs" />
     <Compile Include="Assets\Tank &amp; Healer Studio\Ultimate Joystick\Scripts\UltimateJoystickScreenSizeUpdater.cs" />
@@ -71,7 +72,6 @@
     <Compile Include="Assets\Game\Script\Player\PlayerManager.cs" />
     <Compile Include="Assets\Game\Script\UI\SettingPanel.cs" />
     <Compile Include="Assets\Game\Script\Player\RagdollController.cs" />
-    <Compile Include="Assets\Game\Script\UI\showFPS.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\TextMesh Pro\Shaders\TMPro.cginc" />

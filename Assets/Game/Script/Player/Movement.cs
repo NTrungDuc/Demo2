@@ -26,6 +26,7 @@ public class Movement : MonoBehaviour
     //
     private Vector3 oldPos;
     public float dashForce = 5f;
+    public float speedDash = 1.1f;
     public float attackTime = 0.5f;
     private bool isAttacking = false;
     private bool isDashing = false;
@@ -109,8 +110,10 @@ public class Movement : MonoBehaviour
     }
     private IEnumerator Dash()
     {
-        transform.Translate(Vector3.forward * dashForce);
+        //transform.Translate(Vector3.forward * dashForce);
+        speed *= speedDash;
         yield return new WaitForSeconds(dashForce);
+        speed /= speedDash;
         isDashing = false;
     }
     public IEnumerator bouchingPlayer()

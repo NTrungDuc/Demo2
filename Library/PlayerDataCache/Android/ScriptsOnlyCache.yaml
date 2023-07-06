@@ -8,10 +8,10 @@ ScriptsOnlyBuild:
     - PlayerManager
     - RagdollController
     - RandomMovement
+    - SC_FPSCounter
     - SettingPanel
     - Sword
     - UltimateJoystick
-    - showFPS
     DOTween.dll:
     - DG.Tweening.Core.DOTweenSettings
     Unity.Rider.Editor.dll:
@@ -24,10 +24,8 @@ ScriptsOnlyBuild:
     UnityEditor.Graphs.dll:
     - UnityEditor.Graphs.AnimationBlendTree.Graph
     - UnityEditor.Graphs.AnimationBlendTree.GraphGUI
-    - UnityEditor.Graphs.AnimationStateMachine.AnyStateNode
     - UnityEditor.Graphs.AnimationStateMachine.Graph
     - UnityEditor.Graphs.AnimationStateMachine.GraphGUI
-    - UnityEditor.Graphs.AnimationStateMachine.StateNode
     - UnityEditor.Graphs.AnimatorControllerTool
     UnityEditor.TestRunner.dll:
     - UnityEditor.TestTools.TestRunner.Api.CallbacksHolder
@@ -152,31 +150,31 @@ ScriptsOnlyBuild:
     - Class: 114
       Script: {instanceID: 3380}
     - Class: 114
-      Script: {instanceID: 3484}
+      Script: {instanceID: 3408}
     - Class: 114
-      Script: {instanceID: 3576}
+      Script: {instanceID: 3486}
     - Class: 114
-      Script: {instanceID: 4306}
+      Script: {instanceID: 3578}
     - Class: 114
-      Script: {instanceID: 4574}
+      Script: {instanceID: 4308}
     - Class: 114
-      Script: {instanceID: 5346}
+      Script: {instanceID: 4576}
     - Class: 114
-      Script: {instanceID: 5622}
+      Script: {instanceID: 5348}
     - Class: 114
-      Script: {instanceID: 5966}
+      Script: {instanceID: 5624}
     - Class: 114
-      Script: {instanceID: 6468}
+      Script: {instanceID: 5968}
     - Class: 114
-      Script: {instanceID: 7262}
+      Script: {instanceID: 6470}
     - Class: 114
-      Script: {instanceID: 7736}
+      Script: {instanceID: 7264}
     - Class: 114
-      Script: {instanceID: 7898}
+      Script: {instanceID: 7738}
     - Class: 114
-      Script: {instanceID: 7964}
+      Script: {instanceID: 7900}
     - Class: 114
-      Script: {instanceID: 144418}
+      Script: {instanceID: 7966}
     - Class: 115
       Script: {instanceID: 0}
     - Class: 128
@@ -370,7 +368,7 @@ ScriptsOnlyBuild:
     className: UnityMessageListener
   - hash:
       serializedVersion: 2
-      Hash: 9197339ef45d15816eba4590a9c09c83
+      Hash: 50340cb0c27f3e4094e2db015b52dc38
     assemblyName: Assembly-CSharp.dll
     namespaceName: 
     className: Movement
@@ -482,6 +480,12 @@ ScriptsOnlyBuild:
     assemblyName: UnityEngine.UI.dll
     namespaceName: UnityEngine.UI
     className: ContentSizeFitter
+  - hash:
+      serializedVersion: 2
+      Hash: 96149ecc3411d28ef0d8b50d5e260652
+    assemblyName: Assembly-CSharp.dll
+    namespaceName: 
+    className: SC_FPSCounter
   - hash:
       serializedVersion: 2
       Hash: f6831ac80ec81c5d5b370c0ed0fee997
@@ -1082,12 +1086,6 @@ ScriptsOnlyBuild:
     assemblyName: Unity.VisualScripting.Core.dll
     namespaceName: Unity.VisualScripting
     className: UnityOnSliderValueChangedMessageListener
-  - hash:
-      serializedVersion: 2
-      Hash: 1b8ee275dec17683a493d27d6c4d42c7
-    assemblyName: Assembly-CSharp.dll
-    namespaceName: 
-    className: showFPS
   platform: 13
   scenePathNames:
   - Assets/Scenes/SampleScene.unity
