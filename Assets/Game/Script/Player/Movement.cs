@@ -21,8 +21,10 @@ public class Movement : MonoBehaviour
     [SerializeField] private Button btnAttack;
     [SerializeField] private Button btnDash;
     [SerializeField] private Button btnRemake;
-    [SerializeField] private Text txtDead;
-    private int deadCount;
+    //cooldown dash
+    [SerializeField] private Image cooldownImage;
+    float cooldownDash = 2;
+    [SerializeField] bool isCooldown = false;
     //
     private Vector3 oldPos;
     public float dashForce = 5f;
@@ -36,15 +38,15 @@ public class Movement : MonoBehaviour
     {
         currentHealth = maxHealth;
         oldPos = transform.position;
+        cooldownImage.fillAmount = 0;
         btnRemake.onClick.AddListener(() =>
         {
             GameEvents.Instance.playerManager.playerState = PlayerManager.PlayerState.Idle;
+            StartCoroutine(ragdollController.DeathSequence(1.5f, false,0.001f));
             GameEvents.Instance.disableLosePanel();
             currentHealth = maxHealth;
             healthBar.UpdateHealthBar(maxHealth, currentHealth);
             transform.position = oldPos;
-            deadCount += 1;
-            txtDead.text = "Dead: " + deadCount;
         });
         btnAttack.onClick.AddListener(() =>
         {
@@ -53,7 +55,10 @@ public class Movement : MonoBehaviour
         btnDash.onClick.AddListener(() =>
         {
             GameEvents.Instance.playerManager.playerState = PlayerManager.PlayerState.Dash;
-            isDashing = true;
+            if (!isCooldown)
+            {
+                isDashing = true;
+            }
         });
     }
     void Update()
@@ -62,6 +67,7 @@ public class Movement : MonoBehaviour
         {
             playerMovement();
         }
+        Ability();
     }
     public void playerMovement()
     {
@@ -82,25 +88,40 @@ public class Movement : MonoBehaviour
         if (isAttacking)
         {
             GameEvents.Instance.playerManager.playerState = PlayerManager.PlayerState.Attack;
+            rb.isKinematic = true;
         }
         activeEffect();
         if (isDashing)
         {
             StartCoroutine(Dash());
+            isCooldown = true;
+            cooldownImage.fillAmount = 1;
         }
-        //if (isBouching)
-        //{
-        //    StartCoroutine(bouchingPlayer());
-        //}
+        if (isBouching)
+        {
+            StartCoroutine(bouchingPlayer());
+        }
         rb.velocity = new Vector3(h, 0, v) * speed;
         if (rb.velocity != Vector3.zero)
         {
             transform.rotation = Quaternion.LookRotation(new Vector3(h, 0, v));
         }
     }
+    void Ability()
+    {
+        if (isCooldown)
+        {
+            cooldownImage.fillAmount -= 1 / cooldownDash * Time.deltaTime;
+            if (cooldownImage.fillAmount <= 0)
+            {
+                cooldownImage.fillAmount = 0;
+                isCooldown = false;
+            }
+        }
+    }
     private IEnumerator Attack()
     {
-        rb.isKinematic = true;
+        //rb.isKinematic = true;
         animator.SetBool("attack", true);
         isAttacking = true;
         yield return new WaitForSeconds(attackTime);
@@ -118,20 +139,21 @@ public class Movement : MonoBehaviour
     }
     public IEnumerator bouchingPlayer()
     {
-        float bouching = 0.1f;
+        float bouching = 0.3f;
         transform.Translate(Vector3.back * bouching);
-        yield return new WaitForSeconds(bouching);
+        yield return new WaitForSeconds(0.1f);
         isBouching = false;
     }
     void Die()
     {
         GameEvents.Instance.playerManager.playerState = PlayerManager.PlayerState.Die;
         GameEvents.Instance.showLosePanel();
+        StartCoroutine(ragdollController.DeathSequence(1.5f, true,0f));
     }
     public void takeDamage(float damageAmout)
     {
         currentHealth -= damageAmout;
-        //isBouching = true;
+        isBouching = true;
         healthBar.UpdateHealthBar(maxHealth, currentHealth);
         if (currentHealth <= 0)
         {

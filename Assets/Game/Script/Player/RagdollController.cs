@@ -9,30 +9,18 @@ public class RagdollController : MonoBehaviour
     [SerializeField] private Animator animator;
     [SerializeField] private Rigidbody rb;
     [SerializeField] private HealthBar healthBar;
+
     private void Awake()
     {
         ActivateRagdoll(false);
     }
-    private void Update()
+ 
+    public IEnumerator DeathSequence(float time,bool isActive,float scaleHP)
     {
-       StartCoroutine(DeathSequence(1.5f));
-    }
-    public IEnumerator DeathSequence(float time)
-    {
-        if (GameEvents.Instance.playerManager.playerState == PlayerManager.PlayerState.Die)
-        {
-            healthBar.activeHealthBar(0f);
-            rb.isKinematic = true;                       
-            yield return new WaitForSeconds(time);
-            ActivateRagdoll(true);            
-        }
-        else
-        {
-            ActivateRagdoll(false);
-            yield return new WaitForSeconds(time);
-            rb.isKinematic = false;
-            healthBar.activeHealthBar(0.001f);        
-        }
+        healthBar.activeHealthBar(scaleHP);
+        rb.isKinematic = isActive;
+        yield return new WaitForSeconds(time);
+        ActivateRagdoll(isActive);
     }
     public void ActivateRagdoll(bool isActive)
     {

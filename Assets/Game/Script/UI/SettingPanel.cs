@@ -14,11 +14,14 @@ public class SettingPanel : MonoBehaviour
     [SerializeField] private GameObject Setting;
     [SerializeField] private AudioSource soundGame;
     [SerializeField] private AudioSource soundSword;
+    [SerializeField] private Text txtDead;
+    int enemyCount;
     private int switchState = 1;
     public GameObject switchBtnSound;
     // Start is called before the first frame update
     private void Awake()
     {
+        enemyCount = GameEvents.Instance.listEnemy.Count;
         if (PlayerPrefs.GetInt("sound") != 0)
         {
             switchState = PlayerPrefs.GetInt("sound");
@@ -26,6 +29,7 @@ public class SettingPanel : MonoBehaviour
         switchBtnSound.transform.DOLocalMoveX(switchState * switchBtnSound.transform.localPosition.x, 0f);
         PlaySoundGame();
         InvokeRepeating("updateAlive", 0f, 1f);
+        InvokeRepeating("updateDead", 0f, 1f);
         btnOpen.onClick.AddListener(() => {
             StartCoroutine(OpenSetting());
         });
@@ -57,6 +61,10 @@ public class SettingPanel : MonoBehaviour
     public void updateAlive()
     {
         txtAlive.text = "Alive: " + GameEvents.Instance.listAlive.Count;
+    }
+    public void updateDead()
+    {
+        txtDead.text = "Dead: " + (enemyCount-GameEvents.Instance.listAlive.Count);
     }
     public IEnumerator OpenSetting()
     {

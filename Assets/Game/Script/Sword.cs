@@ -8,7 +8,7 @@ public class Sword : MonoBehaviour
     public float damageSlash;
     public bool isPlayer=false;
     float time = 0;
-    float timeAttack = 1;
+    float timeAttack = 0.5f;
     // Start is called before the first frame update
     private void Awake()
     {

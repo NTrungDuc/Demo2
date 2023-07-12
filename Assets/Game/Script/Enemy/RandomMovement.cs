@@ -29,8 +29,9 @@ public class RandomMovement : MonoBehaviour
     private float timeChangeDes = 0;
 
     [SerializeField] bool shouldRun = false;
-
+    [SerializeField] RagdollController ragdoll;
     [SerializeField] private List<GameObject> listTargetEnemy;
+    public bool isBouching = false;
     public enum EnemyState
     {
         Patrol,
@@ -86,7 +87,10 @@ public class RandomMovement : MonoBehaviour
         {
             agent.SetDestination(nearestTarget.position);
         }
-
+        if (isBouching)
+        {
+            StartCoroutine(bouchingPlayer());
+        }
     }
     public void randomMove()
     {
@@ -159,7 +163,7 @@ public class RandomMovement : MonoBehaviour
                 listTargetEnemy.Remove(nearestTarget.gameObject);
                 isAttack(false, EnemyState.Patrol);
             }
-            if (currentHealth < HPTarget && currentHealth < 0.3f * enemyMaxHealth)
+            if (currentHealth < 0.3f * enemyMaxHealth)
             {
                 shouldRun = true;
             }
@@ -180,24 +184,35 @@ public class RandomMovement : MonoBehaviour
         shouldRun = false;
         agent.speed = 3.5f;
     }
-    void Die()
+    IEnumerator Die()
     {
-        enemyState = EnemyState.Die;
+        enemyState = EnemyState.Die;        
+        StartCoroutine(ragdoll.DeathSequence(0f, true, 0f));
+        yield return new WaitForSeconds(1f);
         gameObject.SetActive(false);
+    }
+    public IEnumerator bouchingPlayer()
+    {
+        float bouching = 0.3f;
+        transform.Translate(Vector3.back * bouching);
+        yield return new WaitForSeconds(0.1f);
+        isBouching = false;
     }
     public void takeDamage(float damageAmout)
     {
         currentHealth -= damageAmout;
+        isBouching = true;
         healthBar.UpdateHealthBar(enemyMaxHealth, currentHealth);
-        if (currentHealth <= 0)
+        if (currentHealth <= 0 && gameObject.active)
         {
-            Die();
+            StartCoroutine(Die());
         }
     }
     public void setCurrentHealth()
     {
         currentHealth = enemyMaxHealth;
         healthBar.UpdateHealthBar(enemyMaxHealth, currentHealth);
+        StartCoroutine(ragdoll.DeathSequence(0f, false, 0.001f));
     }
     public void resetPos()
     {
