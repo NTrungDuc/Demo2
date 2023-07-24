@@ -6,76 +6,66 @@ public class Sword : MonoBehaviour
 {
     [SerializeField] public RandomMovement enemyMovement;
     public float damageSlash;
-    public bool isPlayer=false;
-    float time = 0;
-    float timeAttack = 0.5f;
+    public bool isPlayer = false;
+    int id;
     // Start is called before the first frame update
     private void Awake()
     {
         getDamageSword();
     }
 
-    // Update is called once per frame
-    void Update()
-    {
-        time += Time.deltaTime;
-    }
     public void getDamageSword()
     {
-      
+
         if (gameObject.tag == "bladePlayer")
         {
             damageSlash = GameEvents.Instance.playerMovement.damagePerSlash;
-            isPlayer=true;
+            isPlayer = true;
         }
         if (gameObject.tag == "bladeEnemy")
         {
             damageSlash = GameEvents.Instance.listEnemy[enemyMovement.id].damageSlash;
             isPlayer = false;
+            id = enemyMovement.id;
         }
     }
     private void OnTriggerEnter(Collider other)
     {
         if (isPlayer)
         {
-            if (other.gameObject.tag == "Enemy") {
-                RandomMovement randomMovement=other.gameObject.GetComponent<RandomMovement>();
+            if (other.gameObject.tag == "Enemy")
+            {
+                RandomMovement randomMovement = other.gameObject.GetComponent<RandomMovement>();
                 if (GameEvents.Instance.playerManager.playerState == PlayerManager.PlayerState.Attack)
                 {
-                    //Debug.Log(randomMovement.id);
-                    if (time < timeAttack)
-                    {
-                        GameEvents.Instance.listEnemy[randomMovement.id].takeDamage(damageSlash);
-                    }else
-                    {
-                        time = 0;
-                    }
+
+                    GameEvents.Instance.listEnemy[randomMovement.id].takeDamage(damageSlash);
+
                 }
             }
         }
         else
         {
-            if(other.gameObject.tag == "Player")
+            if (other.gameObject.tag == "Player")
             {
-                
-                if (time < timeAttack)
+                if (enemyMovement.enemyState == RandomMovement.EnemyState.Attack)
                 {
+
                     GameEvents.Instance.playerMovement.takeDamage(damageSlash);
-                }
-                else
-                {
-                    time = 0;
+
                 }
             }
-            if (other.gameObject.tag == "Enemy") {
-                RandomMovement randomMovement=other.gameObject.GetComponent<RandomMovement>();
-                if (time < timeAttack)
+            if (other.gameObject.tag == "Enemy")
+            {
+                RandomMovement randomMovement = other.gameObject.GetComponent<RandomMovement>();
+                if (enemyMovement.enemyState == RandomMovement.EnemyState.Attack)
                 {
-                    GameEvents.Instance.listEnemy[randomMovement.id].takeDamage(damageSlash);
-                }
-                else
-                {
-                    time = 0;
+
+                    if (randomMovement.id != id)
+                    {
+                        GameEvents.Instance.listEnemy[randomMovement.id].takeDamage(damageSlash);
+                    }
+
                 }
             }
         }

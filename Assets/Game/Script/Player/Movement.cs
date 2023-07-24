@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using DG.Tweening;
 public class Movement : MonoBehaviour
 {
     //infor player
@@ -20,7 +21,7 @@ public class Movement : MonoBehaviour
     [SerializeField] private HealthBar healthBar;
     [SerializeField] private Button btnAttack;
     [SerializeField] private Button btnDash;
-    [SerializeField] private Button btnRemake;
+    [SerializeField] private Button[] btnRemake;
     //cooldown dash
     [SerializeField] private Image cooldownImage;
     float cooldownDash = 2;
@@ -33,21 +34,31 @@ public class Movement : MonoBehaviour
     private bool isAttacking = false;
     private bool isDashing = false;
     public bool isBouching = false;
+    public float knockbackForce = 10f;
 
+    private Vector3 knockbackDirection;
+
+    private bool isInvulnerable = false;
+    private float invulnerabilityDuration = 1.0f;
+    public float fallGravity = 2f;
     private void Start()
     {
         currentHealth = maxHealth;
         oldPos = transform.position;
         cooldownImage.fillAmount = 0;
-        btnRemake.onClick.AddListener(() =>
+        foreach (Button btn in btnRemake)
         {
-            GameEvents.Instance.playerManager.playerState = PlayerManager.PlayerState.Idle;
-            StartCoroutine(ragdollController.DeathSequence(1.5f, false,0.001f));
-            GameEvents.Instance.disableLosePanel();
-            currentHealth = maxHealth;
-            healthBar.UpdateHealthBar(maxHealth, currentHealth);
-            transform.position = oldPos;
-        });
+            btn.onClick.AddListener(() =>
+            {
+                GameEvents.Instance.playerManager.playerState = PlayerManager.PlayerState.Idle;
+                gameObject.SetActive(true);
+                StartCoroutine(ragdollController.DeathSequence(1.5f, false, 0.001f));
+                GameEvents.Instance.disableLosePanel();
+                currentHealth = maxHealth;
+                healthBar.UpdateHealthBar(maxHealth, currentHealth);
+                transform.position = oldPos;
+            });
+        }
         btnAttack.onClick.AddListener(() =>
         {
             StartCoroutine(Attack());
@@ -68,6 +79,11 @@ public class Movement : MonoBehaviour
             playerMovement();
         }
         Ability();
+        if (rb.velocity.y < -10)
+        {
+            GameEvents.Instance.showLosePanel();
+            gameObject.SetActive(false);
+        }
     }
     public void playerMovement()
     {
@@ -75,10 +91,11 @@ public class Movement : MonoBehaviour
         //float v = Input.GetAxis("Vertical");
         float h = joystick.GetHorizontalAxis();
         float v = joystick.GetVerticalAxis();
-        if (h > 0 || v > 0 || h < 0 || v < 0)
+        if (h != 0 || v != 0)
         {
             GameEvents.Instance.playerManager.playerState = PlayerManager.PlayerState.Move;
             animator.SetBool("run", true);
+            transform.rotation = Quaternion.LookRotation(new Vector3(h, 0, v));
         }
         if (h == 0 && v == 0)
         {
@@ -101,11 +118,9 @@ public class Movement : MonoBehaviour
         {
             StartCoroutine(bouchingPlayer());
         }
-        rb.velocity = new Vector3(h, 0, v) * speed;
-        if (rb.velocity != Vector3.zero)
-        {
-            transform.rotation = Quaternion.LookRotation(new Vector3(h, 0, v));
-        }
+
+        Vector3 movement = new Vector3(h, 0, v) * speed;
+        rb.velocity = new Vector3(movement.x, rb.velocity.y, movement.z);
     }
     void Ability()
     {
@@ -131,7 +146,6 @@ public class Movement : MonoBehaviour
     }
     private IEnumerator Dash()
     {
-        //transform.Translate(Vector3.forward * dashForce);
         speed *= speedDash;
         yield return new WaitForSeconds(dashForce);
         speed /= speedDash;
@@ -139,8 +153,7 @@ public class Movement : MonoBehaviour
     }
     public IEnumerator bouchingPlayer()
     {
-        float bouching = 0.3f;
-        transform.Translate(Vector3.back * bouching);
+        rb.AddForce(knockbackDirection * knockbackForce, ForceMode.Impulse);
         yield return new WaitForSeconds(0.1f);
         isBouching = false;
     }
@@ -150,23 +163,37 @@ public class Movement : MonoBehaviour
         GameEvents.Instance.showLosePanel();
         StartCoroutine(ragdollController.DeathSequence(1.5f, true,0f));
     }
-    public void takeDamage(float damageAmout)
+
+    public void takeDamage(float damageAmount)
     {
-        currentHealth -= damageAmout;
-        isBouching = true;
-        healthBar.UpdateHealthBar(maxHealth, currentHealth);
-        if (currentHealth <= 0)
+        if (!isInvulnerable)
         {
-            Die();
+            currentHealth -= damageAmount;
+            isBouching = true;
+            healthBar.UpdateHealthBar(maxHealth, currentHealth);
+            if (currentHealth <= 0)
+            {
+                Die();
+            }
+            else
+            {
+                StartCoroutine(InvulnerabilityCooldown());
+            }
         }
+    }
+
+
+    private IEnumerator InvulnerabilityCooldown()
+    {
+        isInvulnerable = true;
+        yield return new WaitForSeconds(invulnerabilityDuration);
+        isInvulnerable = false;
     }
     void activeEffect()
     {
-        if (GameEvents.Instance.playerManager.playerState == PlayerManager.PlayerState.Attack
-            || GameEvents.Instance.playerManager.playerState == PlayerManager.PlayerState.Move)
+        if (GameEvents.Instance.playerManager.playerState == PlayerManager.PlayerState.Attack)
         {
             attackslash.Play();
-
         }
         else
         {
@@ -177,5 +204,11 @@ public class Movement : MonoBehaviour
             sword.Play();
         }
     }
-
+    private void OnTriggerEnter(Collider collision)
+    {
+        if (collision.gameObject.CompareTag("bladeEnemy"))
+        {
+            knockbackDirection = (transform.position - collision.gameObject.transform.position).normalized;
+        }
+    }
 }

@@ -12,7 +12,7 @@ public class RandomMovement : MonoBehaviour
     public float enemyMaxHealth = 100;
     public float currentHealth;
     public float damageSlash = 2;
-    private float attackRadius = 2;
+    private float attackRadius = 3;
 
     [SerializeField] private Rigidbody rb;
     [SerializeField] private Animator animator;
@@ -32,6 +32,11 @@ public class RandomMovement : MonoBehaviour
     [SerializeField] RagdollController ragdoll;
     [SerializeField] private List<GameObject> listTargetEnemy;
     public bool isBouching = false;
+    [SerializeField] private Collider cd;
+
+    private bool isInvulnerable = false;
+    private float invulnerabilityDuration = 1.0f;
+
     public enum EnemyState
     {
         Patrol,
@@ -50,51 +55,60 @@ public class RandomMovement : MonoBehaviour
 
     void Update()
     {
-        if (enemyState == EnemyState.Patrol)
+        if (enemyState != EnemyState.Die)
         {
-            randomMove();
-        }
-
-        timeChangeDes += Time.deltaTime;
-
-        if (timeChangeDes >= cooldownChangeDestiantion)
-        {
-            nearestTarget = GetNearestTarget();
-            timeChangeDes = 0;
-        }
-        if (shouldRun)
-        {
-            isAttack(false, EnemyState.Escape);
-            Vector3 currentPosition = transform.position;
-            if (nearestTarget != null)
+            if (enemyState == EnemyState.Patrol)
             {
-                Vector3 reversedDirection = (currentPosition - nearestTarget.position).normalized;
+                randomMove();
+            }
 
-                NavMeshHit navMeshHit;
-                if (NavMesh.SamplePosition(currentPosition + reversedDirection * patrolRadius, out navMeshHit, 1f, NavMesh.AllAreas))
+            timeChangeDes += Time.deltaTime;
+
+            if (timeChangeDes >= cooldownChangeDestiantion)
+            {
+                nearestTarget = GetNearestTarget();
+                timeChangeDes = 0;
+            }
+            if (shouldRun)
+            {
+                isAttack(false, EnemyState.Escape);
+                Vector3 currentPosition = transform.position;
+                if (nearestTarget != null)
                 {
-                    Vector3 newPosition = navMeshHit.position;
+                    Vector3 reversedDirection = (currentPosition - nearestTarget.position).normalized;
+
+                    NavMeshHit navMeshHit;
+                    if (NavMesh.SamplePosition(currentPosition + reversedDirection * patrolRadius, out navMeshHit, 1f, NavMesh.AllAreas))
+                    {
+                        Vector3 newPosition = navMeshHit.position;
+                        if (enemyState == EnemyState.Escape)
+                        {
+                            agent.SetDestination(newPosition);
+                            StartCoroutine(changeStateRun(EnemyState.Patrol));
+
+                        }
+                    }
+                }
+                else
+                {
                     if (enemyState == EnemyState.Escape)
                     {
-                        agent.SetDestination(newPosition);
-                        StartCoroutine(changeStateRun(EnemyState.Patrol));
-
+                        isAttack(false, EnemyState.Patrol);
                     }
                 }
             }
-        }
-        else if (nearestTarget != null)
-        {
-            agent.SetDestination(nearestTarget.position);
-        }
-        if (isBouching)
-        {
-            StartCoroutine(bouchingPlayer());
+            else if (nearestTarget != null)
+            {
+                agent.SetDestination(nearestTarget.position);
+            }
+            if (isBouching)
+            {
+                StartCoroutine(bouchingPlayer());
+            }
         }
     }
     public void randomMove()
     {
-
         if (agent.remainingDistance <= agent.stoppingDistance)
         {
             Vector3 point;
@@ -102,7 +116,6 @@ public class RandomMovement : MonoBehaviour
             {
                 Debug.DrawRay(point, Vector3.up, Color.blue, 1.0f);
                 agent.SetDestination(point);
-                enemyState = EnemyState.Patrol;
             }
         }
 
@@ -131,6 +144,7 @@ public class RandomMovement : MonoBehaviour
         foreach (GameObject target in listTargetEnemy.ToArray())
         {
             float distance = Vector3.Distance(target.transform.position, currentPosition);
+
             if (distance < chaseRadius)
             {
                 nearestTarget = target.transform;
@@ -163,7 +177,7 @@ public class RandomMovement : MonoBehaviour
                 listTargetEnemy.Remove(nearestTarget.gameObject);
                 isAttack(false, EnemyState.Patrol);
             }
-            if (currentHealth < 0.3f * enemyMaxHealth)
+            if (currentHealth <= 0.3f * enemyMaxHealth)
             {
                 shouldRun = true;
             }
@@ -178,43 +192,66 @@ public class RandomMovement : MonoBehaviour
     }
     IEnumerator changeStateRun(EnemyState state)
     {
-        agent.speed = 8;
-        yield return new WaitForSeconds(5f);
+        agent.speed = 5;
+        yield return new WaitForSeconds(2f);
         enemyState = state;
         shouldRun = false;
         agent.speed = 3.5f;
     }
     IEnumerator Die()
     {
-        enemyState = EnemyState.Die;        
+        enemyState = EnemyState.Die;
         StartCoroutine(ragdoll.DeathSequence(0f, true, 0f));
-        yield return new WaitForSeconds(1f);
+        agent.enabled = false;
+        yield return new WaitForSeconds(2f);
+        cd.isTrigger = true;
+        ragdoll.activeCollider(false);
+        yield return new WaitForSeconds(0.5f);
         gameObject.SetActive(false);
     }
     public IEnumerator bouchingPlayer()
     {
-        float bouching = 0.3f;
+        float bouching = 0.5f;
         transform.Translate(Vector3.back * bouching);
         yield return new WaitForSeconds(0.1f);
         isBouching = false;
     }
-    public void takeDamage(float damageAmout)
+    
+    public void takeDamage(float damageAmount)
     {
-        currentHealth -= damageAmout;
-        isBouching = true;
-        healthBar.UpdateHealthBar(enemyMaxHealth, currentHealth);
-        if (currentHealth <= 0 && gameObject.active)
+        if (!isInvulnerable)
         {
-            StartCoroutine(Die());
+            currentHealth -= damageAmount;
+            isBouching = true;
+            healthBar.UpdateHealthBar(enemyMaxHealth, currentHealth);
+            if (currentHealth <= 0)
+            {
+                StartCoroutine(Die());
+            }
+            else
+            {
+                StartCoroutine(InvulnerabilityCooldown());
+            }
         }
+    }
+
+
+    private IEnumerator InvulnerabilityCooldown()
+    {
+        isInvulnerable = true;
+        yield return new WaitForSeconds(invulnerabilityDuration);
+        isInvulnerable = false;
     }
     public void setCurrentHealth()
     {
         currentHealth = enemyMaxHealth;
+        enemyState = EnemyState.Patrol;
+        agent.enabled = true;
+        cd.isTrigger = false;
         healthBar.UpdateHealthBar(enemyMaxHealth, currentHealth);
         StartCoroutine(ragdoll.DeathSequence(0f, false, 0.001f));
     }
-    public void resetPos()
+    public void resetAll()
     {
         transform.position = centrePoint;
     }

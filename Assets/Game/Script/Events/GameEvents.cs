@@ -26,7 +26,7 @@ public class GameEvents : Singleton<GameEvents>
         foreach(RandomMovement rM in listEnemy)
         {
             rM.isAttack(false, RandomMovement.EnemyState.Patrol);
-            rM.resetPos();
+            rM.resetAll();
             if (rM.gameObject.active)
             {
                 rM.setCurrentHealth();

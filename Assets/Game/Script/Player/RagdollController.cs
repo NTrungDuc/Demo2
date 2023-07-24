@@ -34,4 +34,12 @@ public class RagdollController : MonoBehaviour
         }
         animator.enabled = !isActive;
     }
+    public void activeCollider(bool isActive)
+    {
+        foreach (Collider collider in colliders)
+        {
+            collider.enabled = isActive;
+        }
+        rb.isKinematic=isActive;
+    }
 }
