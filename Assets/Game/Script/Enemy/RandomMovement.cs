@@ -47,9 +47,7 @@ public class RandomMovement : MonoBehaviour
     }
     private void Awake()
     {
-        centrePoint = transform.position;
-        listTargetEnemy = new List<GameObject>(GameEvents.Instance.listTarget);
-        listTargetEnemy.Remove(gameObject);
+        centrePoint = transform.position;       
     }
 
 
@@ -78,15 +76,16 @@ public class RandomMovement : MonoBehaviour
                     Vector3 reversedDirection = (currentPosition - nearestTarget.position).normalized;
 
                     NavMeshHit navMeshHit;
-                    if (NavMesh.SamplePosition(currentPosition + reversedDirection * patrolRadius, out navMeshHit, 1f, NavMesh.AllAreas))
+                    if (enemyState == EnemyState.Escape)
                     {
-                        Vector3 newPosition = navMeshHit.position;
-                        if (enemyState == EnemyState.Escape)
+                        if (NavMesh.SamplePosition(currentPosition + reversedDirection * patrolRadius, out navMeshHit, 1f, NavMesh.AllAreas))
                         {
+                            Vector3 newPosition = navMeshHit.position;
+
                             agent.SetDestination(newPosition);
                             StartCoroutine(changeStateRun(EnemyState.Patrol));
-
                         }
+                        
                     }
                 }
                 else
@@ -148,7 +147,7 @@ public class RandomMovement : MonoBehaviour
             if (distance < chaseRadius)
             {
                 nearestTarget = target.transform;
-
+                
                 if (distance <= attackRadius)
                 {
                     transform.DOLookAt(nearestTarget.transform.position, 1f);
@@ -161,6 +160,10 @@ public class RandomMovement : MonoBehaviour
                 }
 
             }
+            if (!target.active)
+            {
+                listTargetEnemy.Remove(target);
+            }
         }
 
 
@@ -171,10 +174,10 @@ public class RandomMovement : MonoBehaviour
     {
         if (nearestTarget.gameObject.tag == "Enemy")
         {
-            float HPTarget = nearestTarget.GetComponent<RandomMovement>().currentHealth;
-            if (HPTarget <= 0)
+            RandomMovement Target = nearestTarget.GetComponent<RandomMovement>();
+            if (Target.currentHealth <= 0)
             {
-                listTargetEnemy.Remove(nearestTarget.gameObject);
+                //listTargetEnemy.Remove(nearestTarget.gameObject);
                 isAttack(false, EnemyState.Patrol);
             }
             if (currentHealth <= 0.3f * enemyMaxHealth)
@@ -192,8 +195,8 @@ public class RandomMovement : MonoBehaviour
     }
     IEnumerator changeStateRun(EnemyState state)
     {
-        agent.speed = 5;
-        yield return new WaitForSeconds(2f);
+        agent.speed = 8;
+        yield return new WaitForSeconds(5f);
         enemyState = state;
         shouldRun = false;
         agent.speed = 3.5f;
@@ -216,7 +219,7 @@ public class RandomMovement : MonoBehaviour
         yield return new WaitForSeconds(0.1f);
         isBouching = false;
     }
-    
+
     public void takeDamage(float damageAmount)
     {
         if (!isInvulnerable)
@@ -246,6 +249,8 @@ public class RandomMovement : MonoBehaviour
     {
         currentHealth = enemyMaxHealth;
         enemyState = EnemyState.Patrol;
+        listTargetEnemy = new List<GameObject>(GameEvents.Instance.listTarget);
+        listTargetEnemy.Remove(gameObject);
         agent.enabled = true;
         cd.isTrigger = false;
         healthBar.UpdateHealthBar(enemyMaxHealth, currentHealth);
