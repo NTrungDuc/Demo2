@@ -78,27 +78,37 @@ public class RandomMovement : MonoBehaviour
                     NavMeshHit navMeshHit;
                     if (enemyState == EnemyState.Escape)
                     {
-                        if (NavMesh.SamplePosition(currentPosition + reversedDirection * patrolRadius, out navMeshHit, 1f, NavMesh.AllAreas))
+                        Vector3 newPosition = currentPosition + reversedDirection * patrolRadius;
+                        if (NavMesh.SamplePosition(newPosition, out navMeshHit, 1f, NavMesh.AllAreas))
                         {
-                            Vector3 newPosition = navMeshHit.position;
-
-                            agent.SetDestination(newPosition);
-                            StartCoroutine(changeStateRun(EnemyState.Patrol));
+                            newPosition = navMeshHit.position;   
                         }
-                        
+                        agent.SetDestination(newPosition);
+                        StartCoroutine(changeStateRun(EnemyState.Patrol));
                     }
                 }
                 else
                 {
                     if (enemyState == EnemyState.Escape)
                     {
-                        isAttack(false, EnemyState.Patrol);
+                        //isAttack(false, EnemyState.Patrol);
+                        enemyState = EnemyState.Patrol;
                     }
                 }
             }
-            else if (nearestTarget != null)
+            else
             {
-                agent.SetDestination(nearestTarget.position);
+                if (enemyState == EnemyState.Chase)
+                {
+                    if (nearestTarget != null)
+                    {
+                        agent.SetDestination(nearestTarget.position);
+                    }
+                    else
+                    {
+                        enemyState = EnemyState.Patrol;
+                    }
+                }
             }
             if (isBouching)
             {
@@ -108,16 +118,22 @@ public class RandomMovement : MonoBehaviour
     }
     public void randomMove()
     {
-        if (agent.remainingDistance <= agent.stoppingDistance)
+        if (gameObject.active)
         {
-            Vector3 point;
-            if (RandomPoint(centrePoint, patrolRadius, out point))
+            if (agent.remainingDistance <= agent.stoppingDistance)
             {
-                Debug.DrawRay(point, Vector3.up, Color.blue, 1.0f);
-                agent.SetDestination(point);
+                Vector3 point;
+                if (RandomPoint(centrePoint, patrolRadius, out point))
+                {
+                    Debug.DrawRay(point, Vector3.up, Color.blue, 1.0f);
+                    agent.SetDestination(point);
+                }
             }
         }
-
+        if (nearestTarget != null)
+        {
+            enemyState = EnemyState.Chase;
+        }
     }
     bool RandomPoint(Vector3 center, float range, out Vector3 result)
     {
@@ -165,7 +181,7 @@ public class RandomMovement : MonoBehaviour
                 listTargetEnemy.Remove(target);
             }
         }
-
+  
 
         return nearestTarget;
     }

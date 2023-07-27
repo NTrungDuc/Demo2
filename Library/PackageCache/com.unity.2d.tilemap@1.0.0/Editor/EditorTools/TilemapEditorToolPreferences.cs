@@ -38,6 +38,8 @@ namespace UnityEditor.Tilemaps
             return instance.CreateDefaultTilemapEditorTools();
         }
 
+        internal static event Action tilemapEditorToolsChanged;
+
         private ReorderableList m_DefaultTypes;
         private ReorderableList m_OtherTypes;
         private bool m_Changed;
@@ -153,6 +155,11 @@ namespace UnityEditor.Tilemaps
 
             s_DefaultTilemapEditorTools = editorTools.ToArray();
             return s_DefaultTilemapEditorTools;
+        }
+
+        internal void UpdateTilemapEditorToolsChange()
+        {
+            tilemapEditorToolsChanged?.Invoke();
         }
 
         private void OnDrawDefaultElement(Rect rect, int i, bool isactive, bool isfocused)
@@ -285,6 +292,7 @@ namespace UnityEditor.Tilemaps
             ClearExistingDefaultTilemapEditorTools();
             LoadDefaultEditorToolTypes();
             DeactivateToolIfNotInDefault();
+            UpdateTilemapEditorToolsChange();
         }
 
         internal void ResetTilemapEditorToolPreferences()
@@ -293,6 +301,7 @@ namespace UnityEditor.Tilemaps
             ClearExistingDefaultTilemapEditorTools();
             LoadDefaultEditorToolTypes();
             DeactivateToolIfNotInDefault();
+            UpdateTilemapEditorToolsChange();
         }
 
         private static void DeleteTilemapEditorToolPreferencesAsset()

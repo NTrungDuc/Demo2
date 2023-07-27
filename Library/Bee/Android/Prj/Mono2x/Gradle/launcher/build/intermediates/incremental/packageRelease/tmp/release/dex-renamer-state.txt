@@ -1,4 +1,4 @@
-#Tue Jul 25 16:55:08 ICT 2023
-base.0=D\:\\CodeGame\\3D\\simpleIO\\simpleIO\\Library\\Bee\\Android\\Prj\\Mono2x\\Gradle\\launcher\\build\\intermediates\\dex\\release\\mergeDexRelease\\classes.dex
-path.0=classes.dex
+#Thu Jul 27 09:50:34 ICT 2023
+base.0=D\:\\CodeGame\\3D\\Phase2Demo\\Library\\Bee\\Android\\Prj\\Mono2x\\Gradle\\launcher\\build\\intermediates\\dex\\release\\mergeDexRelease\\classes.dex
 renamed.0=classes.dex
+path.0=classes.dex

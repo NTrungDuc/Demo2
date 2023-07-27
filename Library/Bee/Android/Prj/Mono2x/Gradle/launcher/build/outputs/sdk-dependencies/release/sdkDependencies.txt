@@ -3,12 +3,20 @@
 
 library {
   digests {
-    sha256: "\261\345\030*\372\362T=\026\256\200\334\320\016\236T\251\005-\177\223I\034G\267\224\250\as\f\255\231"
+    sha256: "\030<\304\226\337Q:\202\375\203\272\215\3744\310\205\006\324\033\237\005\"\234i\033\303\334n~r\020\253"
   }
-}
-library_dependencies {
 }
 module_dependencies {
   module_name: "base"
   dependency_index: 0
+}
+repositories {
+  maven_repo {
+    url: "https://dl.google.com/dl/android/maven2/"
+  }
+}
+repositories {
+  maven_repo {
+    url: "https://repo.maven.apache.org/maven2/"
+  }
 }

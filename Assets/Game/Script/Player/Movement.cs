@@ -28,7 +28,7 @@ public class Movement : MonoBehaviour
     [SerializeField] bool isCooldown = false;
     //
     private Vector3 oldPos;
-    public float dashForce = 5f;
+    public float timeDash;
     public float speedDash = 1.1f;
     public float attackTime = 0.5f;
     private bool isAttacking = false;
@@ -51,8 +51,7 @@ public class Movement : MonoBehaviour
             btn.onClick.AddListener(() =>
             {
                 GameEvents.Instance.playerManager.playerState = PlayerManager.PlayerState.Idle;
-                gameObject.SetActive(true);
-                StartCoroutine(ragdollController.DeathSequence(1.5f, false, 0.001f));
+                StartCoroutine(ragdollController.DeathSequence(0f, false, 0.001f));
                 GameEvents.Instance.disableLosePanel();
                 currentHealth = maxHealth;
                 healthBar.UpdateHealthBar(maxHealth, currentHealth);
@@ -79,11 +78,6 @@ public class Movement : MonoBehaviour
             playerMovement();
         }
         Ability();
-        if (rb.velocity.y < -10)
-        {
-            GameEvents.Instance.showLosePanel();
-            gameObject.SetActive(false);
-        }
     }
     public void playerMovement()
     {
@@ -147,21 +141,25 @@ public class Movement : MonoBehaviour
     private IEnumerator Dash()
     {
         speed *= speedDash;
-        yield return new WaitForSeconds(dashForce);
+        yield return new WaitForSeconds(timeDash);
         speed /= speedDash;
         isDashing = false;
     }
     public IEnumerator bouchingPlayer()
     {
-        rb.AddForce(knockbackDirection * knockbackForce, ForceMode.Impulse);
+        //rb.AddForce(knockbackDirection * knockbackForce, ForceMode.Impulse);
+        knockbackDirection.Normalize();
+        Vector3 movement = knockbackDirection;
+        movement.y = 0;
+        transform.Translate(movement * knockbackForce, Space.World);
         yield return new WaitForSeconds(0.1f);
         isBouching = false;
     }
-    void Die()
+    void Die(float time)
     {
         GameEvents.Instance.playerManager.playerState = PlayerManager.PlayerState.Die;
         GameEvents.Instance.showLosePanel();
-        StartCoroutine(ragdollController.DeathSequence(1.5f, true,0f));
+        StartCoroutine(ragdollController.DeathSequence(time, true,0f));
     }
 
     public void takeDamage(float damageAmount)
@@ -173,7 +171,7 @@ public class Movement : MonoBehaviour
             healthBar.UpdateHealthBar(maxHealth, currentHealth);
             if (currentHealth <= 0)
             {
-                Die();
+                Die(1.5f);
             }
             else
             {
@@ -202,6 +200,13 @@ public class Movement : MonoBehaviour
         if (animator.GetBool("attack") && sword.enabled)
         {
             sword.Play();
+        }
+    }
+    private void OnCollisionEnter(Collision collision)
+    {
+        if (collision.gameObject.CompareTag("fall"))
+        {
+            Die(0f);
         }
     }
     private void OnTriggerEnter(Collider collision)
